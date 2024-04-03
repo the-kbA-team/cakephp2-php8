@@ -1,5 +1,5 @@
 {
-	"name": "cakephp/cakephp",
+	"name": "kba-team/cakephp",
 	"description": "The CakePHP framework",
 	"type": "library",
 	"keywords": ["framework"],
@@ -13,6 +13,9 @@
 	],
 	"require": {
 		"php": "^8.0"
+	},
+	"replace": {
+		"cakephp/cakephp": "^2.10"
 	},
 	"suggest": {
 		"ext-openssl": "You need to install ext-openssl or ext-mcrypt to use AES-256 encryption",
