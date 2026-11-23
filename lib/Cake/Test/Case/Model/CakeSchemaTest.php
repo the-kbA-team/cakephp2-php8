@@ -473,13 +473,22 @@ class CakeSchemaTest extends CakeTestCase {
 	}
 
 /**
- * testSchemaName method
+ * Tests default and explicit schema names with deprecation reporting enabled.
  *
  * @return void
  */
 	public function testSchemaName() {
-		$Schema = new CakeSchema();
-		$this->assertEquals('App', $Schema->name);
+		$restore = error_reporting();
+		error_reporting($restore | E_DEPRECATED);
+		try {
+			$Schema = new CakeSchema();
+			$this->assertSame('App', $Schema->name);
+
+			$Schema = new CakeSchema(array('name' => 'TestSuite'));
+			$this->assertSame('TestSuite', $Schema->name);
+		} finally {
+			error_reporting($restore);
+		}
 	}
 
 /**
