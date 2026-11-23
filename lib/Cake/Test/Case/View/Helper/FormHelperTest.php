@@ -511,7 +511,7 @@ class FormHelperTest extends CakeTestCase {
  *
  * @var array
  */
-	public $fixtures = array('core.post');
+	public $fixtures = array('core.post', 'core.comment');
 
 /**
  * Do not load the fixtures by default
@@ -9402,13 +9402,19 @@ class FormHelperTest extends CakeTestCase {
  * @return void
  */
 	public function testCreateUrlImpliedController() {
-		$restore = error_reporting(E_ALL ^ E_USER_DEPRECATED);
+		$this->loadFixtures('Comment');
 		$this->Form->request['controller'] = 'posts';
-		$result = $this->Form->create('Comment', array(
-			'action' => 'addComment',
-			'id' => 'addCommentForm',
-			'type' => 'POST'
-		));
+		$restore = error_reporting();
+		try {
+			error_reporting($restore & ~E_USER_DEPRECATED);
+			$result = $this->Form->create('Comment', array(
+				'action' => 'addComment',
+				'id' => 'addCommentForm',
+				'type' => 'POST'
+			));
+		} finally {
+			error_reporting($restore);
+		}
 		$expected = array(
 			'form' => array(
 				'action' => '/comments/addComment',
@@ -9421,7 +9427,6 @@ class FormHelperTest extends CakeTestCase {
 			'/div'
 		);
 		$this->assertTags($result, $expected);
-		error_reporting($restore);
 	}
 
 /**

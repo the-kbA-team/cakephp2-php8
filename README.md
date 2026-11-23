@@ -34,6 +34,11 @@ It means that composer will look at `master` branch of repository configured und
 
 ## Changelog
 
+### 2026-11-23 - v2.11.2
+
+- Added `exclude_scopes` to skip specified scopes for individual log streams.
+- Fixed a PHP 8.1 deprecation when `CakeSchema` has a null name.
+
 ### 2024-02-02
 
 - `str_len` deprecation warning fix in CakeResponse (passing null instead of `string`)

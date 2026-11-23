@@ -48,13 +48,14 @@ abstract class BaseLog implements CakeLogInterface {
  *
  * - `types` string or array, levels the engine is interested in
  * - `scopes` string or array, scopes the engine is interested in
+ * - `exclude_scopes` string or array, scopes that the engine must not receive
  *
  * @param array $config engine configuration
  * @return array
  */
 	public function config($config = array()) {
 		if (!empty($config)) {
-			foreach (array('types', 'scopes') as $option) {
+			foreach (array('types', 'scopes', 'exclude_scopes') as $option) {
 				if (isset($config[$option]) && is_string($config[$option])) {
 					$config[$option] = array($config[$option]);
 				}
