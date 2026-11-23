@@ -505,6 +505,72 @@ class CakeLogTest extends CakeTestCase {
 	}
 
 /**
+ * Test that the catch-all keeps other messages without duplicating scoped logs.
+ *
+ * @return void
+ */
+	public function testCatchAllLoggingExcludesScopes() {
+		$this->_deleteLogs();
+
+		CakeLog::config('debug', array(
+			'engine' => 'File',
+			'types' => array('info', 'notice'),
+			'exclude_scopes' => 'orders',
+			'file' => 'debug',
+		));
+		CakeLog::config('shops', array(
+			'engine' => 'File',
+			'types' => 'info',
+			'scopes' => 'orders',
+			'file' => 'shops',
+		));
+
+		CakeLog::write('info', 'order message', 'orders');
+		$this->assertStringContainsString('Info: order message', file_get_contents(LOGS . 'shops.log'));
+		$this->assertFileDoesNotExist(LOGS . 'debug.log');
+
+		CakeLog::write('info', 'catalog message', 'catalog');
+		CakeLog::write('info', 'unscoped message');
+		$contents = file_get_contents(LOGS . 'debug.log');
+		$this->assertStringContainsString('Info: catalog message', $contents);
+		$this->assertStringContainsString('Info: unscoped message', $contents);
+		$this->assertFalse(CakeLog::write('warning', 'wrong level', 'catalog'));
+		$this->assertFalse(CakeLog::write('notice', 'no dedicated match', 'orders'));
+
+		CakeLog::disable('shops');
+		$this->assertFalse(CakeLog::write('info', 'disabled stream message', 'orders'));
+
+		$this->_deleteLogs();
+	}
+
+/**
+ * Test that exclusions override both regular and legacy scope matching.
+ *
+ * @return void
+ */
+	public function testExcludedScopesTakePrecedence() {
+		$this->_deleteLogs();
+
+		CakeLog::config('shops', array(
+			'engine' => 'File',
+			'types' => 'info',
+			'scopes' => array('catalog', 'orders'),
+			'exclude_scopes' => array('inventory', 'orders'),
+			'file' => 'shops',
+		));
+
+		$this->assertFalse(CakeLog::write('info', 'multiple scopes', array('catalog', 'orders')));
+		$this->assertFalse(CakeLog::write('orders', 'inferred scope'));
+		$this->assertFalse(CakeLog::write('orders', 'excluded explicit scope', 'inventory'));
+		$this->assertFileDoesNotExist(LOGS . 'shops.log');
+
+		$this->assertTrue(CakeLog::write('orders', 'allowed explicit scope', 'catalog'));
+		$this->assertStringContainsString('Orders: allowed explicit scope', file_get_contents(LOGS . 'shops.log'));
+
+		$this->_deleteLogs();
+	}
+
+/**
  * test bogus type and scope
  *
  * @return void

@@ -66,6 +66,11 @@ App::uses('LogEngineCollection', 'Log');
  * application. By using scopes you can control logging for each part
  * of your application and still keep standard log levels.
  *
+ * Set `exclude_scopes` on an adapter to a scope name or an array of scope
+ * names. If any message scope matches, CakeLog skips the adapter even if
+ * `scopes` includes it or no other adapter accepts the message. Messages
+ * with no scope are not affected.
+ *
  * See CakeLog::config() and CakeLog::write() for more information
  * on scopes
  *
@@ -165,7 +170,7 @@ class CakeLog {
  * When configuring loggers you can define the active scopes the logger
  * is for. If defined only the listed scopes will be handled by the
  * logger. If you don't define any scopes an adapter will catch
- * all scopes that match the handled levels.
+ * all scopes that match the handled levels, except those in `exclude_scopes`.
  *
  * ```
  * CakeLog::config('payments', array(
@@ -416,6 +421,7 @@ class CakeLog {
 		if (is_string($type) && empty($scope) && !in_array($type, static::$_levels)) {
 			$scope = $type;
 		}
+		$scope = (array)$scope;
 		$logged = false;
 		foreach (static::$_Collection->enabled() as $streamName) {
 			$logger = static::$_Collection->{$streamName};
@@ -423,13 +429,16 @@ class CakeLog {
 			if (method_exists($logger, 'config')) {
 				$config = $logger->config();
 			}
+			if (isset($config['exclude_scopes']) && array_intersect($scope, (array)$config['exclude_scopes'])) {
+				continue;
+			}
 			if (isset($config['types'])) {
 				$types = $config['types'];
 			}
 			if (isset($config['scopes'])) {
 				$scopes = $config['scopes'];
 			}
-			$inScope = (count(array_intersect((array)$scope, $scopes)) > 0);
+			$inScope = (count(array_intersect($scope, $scopes)) > 0);
 			$correctLevel = in_array($type, $types);
 
 			if (
